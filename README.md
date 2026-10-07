@@ -14,7 +14,6 @@ Ansible role that will install, configure and runs [nimbus](https://nimbus.guide
 ### Supported Platforms
 ```
 * MacOS
-* Debian
 * Ubuntu
 * Redhat(CentOS/Fedora)
 * Amazon
