@@ -1,6 +1,6 @@
 ---
 - name: Add basics to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --network={{nimbus_network}}
@@ -15,7 +15,7 @@
       --validator-monitor-auto
 
 - name: Add p2p settings to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --tcp-port={{nimbus_p2p_port}}
@@ -23,7 +23,7 @@
   when: nimbus_p2p_enabled|bool
 
 - name: Add metrics to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --metrics
@@ -32,7 +32,7 @@
   when: nimbus_metrics_enabled|bool
 
 - name: Add RPC to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --rest
@@ -42,50 +42,50 @@
   when: nimbus_rest_enabled|bool
 
 - name: Add fee receipt to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --suggested-fee-recipient={{nimbus_default_fee_recipient}}
   when: nimbus_default_fee_recipient != ""
 
 - name: Add graffiti to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --graffiti='{{ nimbus_graffiti }}'
   when: nimbus_graffiti != ""
 
 - name: Add bootnodes to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --bootstrap-node='{{ nimbus_bootnodes }}'
   when: nimbus_bootnodes != ""
 
 - name: Add doppelganger_detection to the beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       --doppelganger-detection={{ nimbus_doppelganger_detection|bool|ternary('true', 'false')}}
   when: nimbus_doppelganger_detection | bool
 
 - name: Add custom cli args if provided
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: >
       {{_nimbus_beacon_internal_cmdline_args}}
       {{ nimbus_beacon_cmdline_args | join(' ') }}
   when: nimbus_beacon_cmdline_args != ""
 
 - name: Sanitize beacon cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_beacon_internal_cmdline_args: "{{_nimbus_beacon_internal_cmdline_args | replace('\n', '') | replace('\"', '')}}"
 
 - name: Show beacon cmdline_args
-  debug:
+  ansible.builtin.debug:
     msg: "{{_nimbus_beacon_internal_cmdline_args}}"
 
 - name: Create nimbus-beacon systemd service
-  template:
+  ansible.builtin.template:
     src: "nimbus-beacon.service.j2"
     dest: "{{ nimbus_systemd_dir }}/nimbus-beacon.service"
     owner: "root"
@@ -94,18 +94,18 @@
   register: beacon_systemd_file
 
 - name: Set updated optionally to trigger a systemd restart at the end
-  set_fact:
+  ansible.builtin.set_fact:
     nimbus_state_updates_beacon: "{{ nimbus_state_updates_beacon + ['nimbus.beacon_systemd_file'] }}"
   when: beacon_systemd_file is changed
 
 - name: Reload systemd to reread configs
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: yes
   become: true
   when: beacon_systemd_file is changed
 
 - name: Enable and start nimbus-beacon service
-  systemd:
+  ansible.builtin.systemd:
     name: nimbus-beacon
     state: "{{ nimbus_systemd_state }}"
     enabled: "{{ (nimbus_systemd_state!='stopped') | ternary('true', 'false') | bool }}"

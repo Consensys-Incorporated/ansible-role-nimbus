@@ -1,6 +1,6 @@
 ---
 - name: Add basics to the validator cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: >
       {{_nimbus_validator_internal_cmdline_args}}
       --data-dir={{nimbus_validator_data_dir}}
@@ -14,7 +14,7 @@
       --suggested-fee-recipient={{nimbus_default_fee_recipient}}
 
 - name: Add keymanager to the validator cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: >
       {{_nimbus_validator_internal_cmdline_args}}
       --keymanager
@@ -25,7 +25,7 @@
   when: nimbus_keymanager_token_file != ""
 
 - name: Add metrics to the validator cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: >
       {{_nimbus_validator_internal_cmdline_args}}
       --metrics
@@ -34,36 +34,36 @@
   when: nimbus_metrics_enabled|bool
 
 - name: Add graffiti to the validator cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: >
       {{_nimbus_validator_internal_cmdline_args}}
       --graffiti='{{ nimbus_graffiti }}'
   when: nimbus_graffiti != ""
 
 - name: Add doppelganger_detection to the validator cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: >
       {{_nimbus_validator_internal_cmdline_args}}
       --doppelganger-detection={{ nimbus_doppelganger_detection|bool|ternary('true', 'false')}}'
   when: nimbus_doppelganger_detection | bool
 
 - name: Add custom cli args if provided
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: >
       {{_nimbus_validator_internal_cmdline_args}}
       {{ nimbus_validator_cmdline_args | join(' ') }}
   when: nimbus_validator_cmdline_args != ""
 
 - name: Sanitize validator cmdline_args
-  set_fact:
+  ansible.builtin.set_fact:
     _nimbus_validator_internal_cmdline_args: "{{_nimbus_validator_internal_cmdline_args | replace('\n', '') | replace('\"', '')}}"
 
 - name: Show validator cmdline_args
-  debug:
+  ansible.builtin.debug:
     msg: "{{_nimbus_validator_internal_cmdline_args}}"
 
 - name: Create nimbus-validator systemd service
-  template:
+  ansible.builtin.template:
     src: "nimbus-validator.service.j2"
     dest: "{{ nimbus_systemd_dir }}/nimbus-validator.service"
     owner: "root"
@@ -72,18 +72,18 @@
   register: validator_systemd_file
 
 - name: Set updated optionally to trigger a systemd restart at the end
-  set_fact:
+  ansible.builtin.set_fact:
     nimbus_state_updates_validator: "{{ nimbus_state_updates_validator + ['nimbus.validator_systemd_file'] }}"
   when: validator_systemd_file is changed
 
 - name: Reload systemd to reread configs
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: yes
   become: true
   when: validator_systemd_file is changed
 
 - name: Enable and start nimbus-validator service
-  systemd:
+  ansible.builtin.systemd:
     name: nimbus-validator
     state: "{{ nimbus_systemd_state }}"
     enabled: "{{ (nimbus_systemd_state!='stopped') | ternary('true', 'false') | bool }}"

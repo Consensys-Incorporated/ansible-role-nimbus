@@ -1,47 +1,47 @@
 ---
 - name: Ensure we have sane configuration
   block:
-    - fail:
+    - ansible.builtin.fail:
         msg: You must set "nimbus_version" for this role to run
       when: nimbus_version is not defined
 
 - name: Fetch architecture of the host
-  debug:
+  ansible.builtin.debug:
     var: ansible_facts.architecture
 
 - name: Set system architecture to download appropriate binary
-  set_fact:
+  ansible.builtin.set_fact:
     nimbus_architecture: "{{ 'arm64v8' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
 
 - name: Fetch latest version information
-  include_tasks: "get_latest_version.yml"
+  ansible.builtin.include_tasks: "get_latest_version.yml"
   when: nimbus_version == "latest"
 
 - name: Set download URL for specific version
-  set_fact:
+  ansible.builtin.set_fact:
   # Version to install - linux only!
  # https://github.com/status-im/nimbus-eth2/releases/download/v23.6.1/nimbus-eth2_Linux_amd64_23.6.1_187e1a06.tar.gz
     nimbus_download_url: "https://github.com/status-im/nimbus-eth2/releases/download/{{ nimbus_version }}/nimbus-eth2_Linux_{{ nimbus_architecture }}_{{ nimbus_version[1:] }}_{{ nimbus_git_hash }}.tar.gz"
   when: nimbus_version != "latest"
 
 - name: Get IP address to bind to if not provided
-  include_tasks: "network.yml"
+  ansible.builtin.include_tasks: "network.yml"
   when: not nimbus_host_ip
 
 - name: Install nimbus
-  include_tasks: "install.yml"
+  ansible.builtin.include_tasks: "install.yml"
 
 - name: Perform trusted node sync
-  include_tasks: "trusted-node-sync.yml"
+  ansible.builtin.include_tasks: "trusted-node-sync.yml"
   when: nimbus_checkpoint_sync_url is defined and nimbus_checkpoint_sync_url != ""
 
 - name: Start beacon
-  include_tasks: "beacon.yml"
+  ansible.builtin.include_tasks: "beacon.yml"
   when: nimbus_beacon_enabled | bool
 
 - name: Start validator
-  include_tasks: "validator.yml"
+  ansible.builtin.include_tasks: "validator.yml"
   when: nimbus_validator_enabled | bool
 
 - name: Set version info on a local file
-  include_tasks: "tags.yml"
+  ansible.builtin.include_tasks: "tags.yml"

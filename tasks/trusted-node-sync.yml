@@ -1,7 +1,7 @@
 ---
 
 - name: Create nimbus-sync.sh
-  template:
+  ansible.builtin.template:
     src: "nimbus-sync.sh.j2"
     dest: "{{ nimbus_base_dir }}/nimbus-sync.sh"
     owner: "{{ nimbus_user }}"
@@ -10,5 +10,5 @@
   become: true
 
 - name: Run nimbus-sync.sh
-  shell: "{{ nimbus_base_dir }}/nimbus-sync.sh"
+  ansible.builtin.shell: "{{ nimbus_base_dir }}/nimbus-sync.sh"
   become: true
